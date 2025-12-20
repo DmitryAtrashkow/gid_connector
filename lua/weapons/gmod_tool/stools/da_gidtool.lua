@@ -115,12 +115,10 @@ function TOOL:Reload(trace)
     if trace.Entity and trace.Entity:IsPlayer() then return false end
     
     local ent = self:GetGid(ply, trace)
-
     if (not ent ) then return true end
-
-    if (self.Gid.RightNumber ~= self.Gid.LeftNumber) then
-        self.Gid.LeftNumberCheck = true   
-    end
+	
+	self.Gid = self.Gid or {}
+	self.Gid.Name = ent.GidTriggerName
 
     net.Start("metrostroi-stool-da-gid")
         net.WriteTable(self.Gid)

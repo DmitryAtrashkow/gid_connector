@@ -2,24 +2,53 @@ if SERVER then
 	require("gwsockets")
 	
 	local path = "datrashkow_data/gid_key.txt"
-
-	if file.Exists(path, "DATA") then
-			Metrostroi.GIDKey = string.Trim(file.Read(path, "DATA"))
-	else
-			if not file.Exists("datrashkow_data", "DATA") then
-				file.CreateDir("datrashkow_data")
-			end
-			local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-			local key = ""
-			for i = 1, 32 do
-				local n = math.random(#chars)
-				key = key .. chars:sub(n, n)
-			end
-		file.Write(path, key)
-		Metrostroi.GIDKey = key
-	end
-
 	
+	hook.Add( "InitPostEntity", "gid_postent", function()
+	
+		local CV_Key = GetConVar("metrostroi_gid_key")
+
+		if not CV_Key then
+			CV_Key = CreateConVar(
+				"metrostroi_gid_key",
+				"",
+				FCVAR_ARCHIVE,
+				"GID KEY"
+			)
+		end
+	
+		if not file.Exists("datrashkow_data", "DATA") then
+			file.CreateDir("datrashkow_data")
+		end
+
+		if not file.Exists(path, "DATA") then
+			local key = ""
+			local cvVal = CV_Key:GetString()
+			if cvVal and cvVal ~= "" then
+				key = cvVal
+			else
+				local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+				for i = 1, 32 do
+					local n = math.random(#chars)
+					key = key .. chars:sub(n, n)
+				end
+				CV_Key:SetString(key)
+			end
+			file.Write(path, key)
+		end
+
+		local data = file.Read(path, "DATA")
+		
+		if not data or data == "" then
+			print("[GID] КРИТИЧЕСКАЯ ОШИБКА: не удалось прочитать ключ из файла " .. path)
+			return
+		else
+			CV_Key:SetString(string.Trim(data))
+			Metrostroi.GIDKey = string.Trim(data)
+		end
+
+		print("[GID] Server GID loaded:", Metrostroi.GIDKey)
+	
+	end )
 	
 	timer.Simple( 30, function()
 		if Metrostroi.GIDSocket then
