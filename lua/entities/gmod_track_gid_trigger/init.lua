@@ -36,6 +36,13 @@ end
 
 function ENT:Think()
 	self:UpdateDebugVisibility()
+	
+	if self.UseSwitch and self.SwitchEntityName and not self.SwitchTable then
+		self.SwitchTable = ents.FindByName(self.SwitchEntityName)
+	end
+	if self.SwitchTable then
+		self.SwitchState = self.SwitchTable[1]:GetInternalVariable("m_eDoorState")
+	end
 	self:NextThink(CurTime())
 	return true
 end
@@ -47,10 +54,26 @@ function ENT:StartTouch(ent)
 		local driver = train:GetDriver()
 		local driverNick = IsValid(driver) and driver:Nick() or "неизвестен"
 		local debug = GetConVar("metrostroi_signal_debug")
-		if debug and debug:GetInt() == 1 then
-			RunConsoleCommand("say","[GID] Триггернул метку:", self.GidTriggerName, driverNick)
+		
+		if (not self.UseSwitch or self.UseSwitch == false) then
+			if debug and debug:GetInt() == 1 then
+				RunConsoleCommand("say","[GID] Триггернул метку:", self.GidTriggerName, driverNick)
+			end
+			hook.Run("GID.TriggerPass", self.GidTriggerName, train)
+		elseif self.UseSwitch == true and self.SwitchEntityName and self.SwitchTable and self.SwitchTable[1] and IsValid(self.SwitchTable[1]) then
+			if (not self.TriggerOnDivergence or self.TriggerOnDivergence == false) and self.SwitchState == 0 then
+				if debug and debug:GetInt() == 1 then
+					RunConsoleCommand("say","[GID] Триггернул метку:", self.GidTriggerName, driverNick)
+				end
+				hook.Run("GID.TriggerPass", self.GidTriggerName, train)
+			elseif self.TriggerOnDivergence and self.TriggerOnDivergence == true and self.SwitchState == 2 then
+				if debug and debug:GetInt() == 1 then
+					RunConsoleCommand("say","[GID] Триггернул метку:", self.GidTriggerName, driverNick)
+				end
+				hook.Run("GID.TriggerPass", self.GidTriggerName, train)
+			end
 		end
-		hook.Run("GID.TriggerPass", self.GidTriggerName, train)
+		
 	end
 end
 

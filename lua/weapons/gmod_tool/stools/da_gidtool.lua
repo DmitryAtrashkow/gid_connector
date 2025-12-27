@@ -46,7 +46,13 @@ function TOOL:SpawnGid(ply,trace,param)
 		
         ent:Spawn() 
         ent:Activate()
+		
 		ent.GidTriggerName = self.Gid.Name
+		ent.UseSwitch = self.Gid.UseSwitch or false
+		ent.SwitchEntityName = self.Gid.SwitchEntityName or ""
+		ent.TriggerOnDivergence = self.Gid.TriggerOnDivergence or false
+
+		
         if not found then
             ent:Spawn()
             undo.Create("gid")
@@ -118,7 +124,12 @@ function TOOL:Reload(trace)
     if (not ent ) then return true end
 	
 	self.Gid = self.Gid or {}
+	
 	self.Gid.Name = ent.GidTriggerName
+	self.Gid.UseSwitch = ent.UseSwitch or false
+	self.Gid.SwitchEntityName = ent.SwitchEntityName or ""
+	self.Gid.TriggerOnDivergence = ent.TriggerOnDivergence or false
+	
 
     net.Start("metrostroi-stool-da-gid")
         net.WriteTable(self.Gid)
@@ -162,13 +173,46 @@ function TOOL:BuildCPanelCustom()
         tool.Gid.Name = self:GetValue()
         tool:SendSettings()
     end
+	
+	 -- Учитывать положение стрелки
+    local CheckUseSwitch = CPanel:CheckBox("Учитывать положение стрелки")
+    CheckUseSwitch:SetValue(tool.Gid.UseSwitch and 1 or 0)
+    function CheckUseSwitch:OnChange(val)
+        tool.Gid.UseSwitch = val
+        tool:SendSettings()
+        tool:BuildCPanelCustom()
+    end
+
+    if tool.Gid.UseSwitch then
+        -- Имя энтити стрелки
+        local SwitchName = CPanel:TextEntry("Название энтити стрелки:")
+        SwitchName:SetValue(tool.Gid.SwitchEntityName or "")
+        function SwitchName:OnChange()
+            tool.Gid.SwitchEntityName = self:GetValue()
+            tool:SendSettings()
+        end
+
+        -- Триггер при отклонении
+        local CheckDivergence = CPanel:CheckBox("Триггер при отклонении")
+        CheckDivergence:SetValue(tool.Gid.TriggerOnDivergence and 1 or 0)
+        function CheckDivergence:OnChange(val)
+            tool.Gid.TriggerOnDivergence = val
+            tool:SendSettings()
+        end
+    end
+	
 end
 
 TOOL.NotBuilt = true
 function TOOL:Think()
     if CLIENT and (self.NotBuilt or NeedUpdate) then
         self.Gid = self.Gid or util.JSONToTable(string.Replace(GetConVarString("da_gidtool"),"'","\"")) or {}
-        self:SendSettings()
+        
+		self.Gid.UseSwitch = self.Gid.UseSwitch or false
+		self.Gid.SwitchEntityName = self.Gid.SwitchEntityName or ""
+		self.Gid.TriggerOnDivergence = self.Gid.TriggerOnDivergence or false
+				
+		self:SendSettings()
         self:BuildCPanelCustom()
         self.NotBuilt = false
         NeedUpdate = false

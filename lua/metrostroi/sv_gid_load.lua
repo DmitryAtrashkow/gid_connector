@@ -43,6 +43,9 @@ local function loadGid(name, keep)
 			ent:Spawn()
 			ent:Activate()
 			ent.GidTriggerName = v.GidTriggerName
+			ent.UseSwitch = v.UseSwitch or nil
+			ent.SwitchEntityName = v.SwitchEntityName or nil
+			ent.TriggerOnDivergence = v.TriggerOnDivergence or nil
         end
     end
 end 
@@ -69,6 +72,9 @@ timer.Simple(4, function()
 		for k,v in pairs(gid_ents) do
 			table.insert(gid, {
 				GidTriggerName = v.GidTriggerName,
+				UseSwitch = v.UseSwitch or nil,
+				SwitchEntityName = v.SwitchEntityName or nil,
+				TriggerOnDivergence = v.TriggerOnDivergence or nil,
 				Pos = v:GetPos(),
 				Angles = v:GetAngles()
 			})
